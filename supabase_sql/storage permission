@@ -1,0 +1,45 @@
+-- Supabase AI is experimental and may produce incorrect answers
+-- Always verify the output before executing
+
+-- Enable row-level security on storage.objects and storage.buckets if not already enabled;
+alter table storage.objects enable row level security;
+
+alter table storage.buckets enable row level security;
+
+-- Drop the existing policy before creating a new one
+drop policy "Allow insert to any bucket" on storage.objects;
+
+-- Policy for enabling insert to any bucket in storage.objects;
+create policy "Allow insert to any bucket" on storage.objects for insert
+with
+  check (auth.uid () is not null);
+
+-- Policy for individual user access to their own files in storage.objects;
+create policy "Individual user access" on storage.objects for
+select
+  using (auth.uid () = user_id);
+
+-- Policy for enabling insert to images bucket in storage.buckets;
+create policy "Allow insert to images bucket" on storage.buckets for insert
+with
+  check (auth.uid () is not null);
+
+-- Example policy to allow full storage access (for demonstration purposes);
+-- Replace 'your_bucket_id' with your specific bucket ID or name;
+create policy "Full storage access to users" on storage.objects for all using (auth.uid () is not null);
+
+-- Ensure the policies are applied to all buckets and folders;
+-- Allow authenticated users to read/write files in specific folders;
+-- Replace 'your_folder_id' with the specific folder ID or name;
+create policy "Allow access to files in specific folder" on storage.objects for all using (
+  folder_id = 'your_folder_id'
+  and auth.uid () is not null
+);
+
+-- Allow anonymous users to read JPG images from a specific folder;
+create policy "Allow anon access to JPG images" on storage.objects for
+select
+  using (
+    folder_id = 'your_folder_id'
+    and mime_type = 'image/jpeg'
+  );

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="facebook_app_id">811652894089538</string>
+    <string name="fb_login_protocol_scheme">fb811652894089538</string>
+    <string name="facebook_client_token">68c3fe8dc7b66dc77492e9bdf7889533</string>
+    <string name="app_name">"supabase auth demo"</string>
+
+</resources>
+
+
+

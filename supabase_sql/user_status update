@@ -1,0 +1,31 @@
+CREATE TABLE user_status (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  is_online BOOLEAN DEFAULT FALSE,
+  last_seen TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+ALTER TABLE user_status ENABLE ROW LEVEL SECURITY;
+
+-- Allow insert for any authenticated user
+CREATE POLICY "Allow insert for authenticated users"
+ON user_status
+FOR INSERT
+WITH CHECK (true);
+
+-- Allow select for any authenticated user
+CREATE POLICY "Allow select for authenticated users"
+ON user_status
+FOR SELECT
+USING (true);
+
+-- Allow update for any authenticated user
+CREATE POLICY "Allow update for authenticated users"
+ON user_status
+FOR UPDATE
+USING (true)
+WITH CHECK (true);
+
+
+
+

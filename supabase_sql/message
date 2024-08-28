@@ -1,0 +1,59 @@
+
+--
+-- Step 2: Create the messages table
+CREATE TABLE IF NOT EXISTS messages (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       chat_room_id UUID REFERENCES chat_rooms(id) ON DELETE CASCADE,
+       user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+       message TEXT NOT NULL,
+       forwarded_from UUID  DEFAULT gen_random_uuid(),
+       original_message_id UUID  DEFAULT gen_random_uuid(),
+       is_forwarded bool  DEFAULT false ,
+       message_type message_type NOT NULL DEFAULT 'text',
+       user_send_info jsonb ,
+       created_at TIMESTAMPTZ DEFAULT now(),
+        sent_at TIMESTAMPTZ DEFAULT now(),
+          received_at JSONB DEFAULT '{}'::jsonb,
+       read_at JSONB DEFAULT '{}'::jsonb,
+       has_pending_writes BOOLEAN DEFAULT false,
+       pending_receivement JSONB DEFAULT '[]'::jsonb,
+        participants TEXT[] DEFAULT '{}'::TEXT[],
+       pending_read JSONB DEFAULT '[]'::jsonb
+         typing_users JSONB DEFAULT '[]',
+               message_reactions JSONB DEFAULT '[]',
+     updated_at JSONB DEFAULT '{}'::jsonb,
+     reply_message JSONB DEFAULT '{}' ,
+
+);
+
+-- Step 3: Enable Row Level Security (RLS)
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+-- Step 4: Create policies for insert, select, update, and delete operations
+
+CREATE POLICY "Allow all inserts"
+ON messages
+FOR INSERT
+WITH CHECK (true);
+
+-- Allow insert for authenticated users
+CREATE POLICY "Allow insert for authenticated users"
+ON messages
+FOR INSERT
+WITH CHECK (auth.role() = 'authenticated');
+
+-- Allow select for authenticated users
+CREATE POLICY "Allow select for authenticated users"
+ON messages
+FOR SELECT
+USING (auth.role() = 'authenticated');
+
+
+CREATE POLICY update_all_messages
+ON messages
+FOR UPDATE
+USING (true);
+
+
+
+CREATE TYPE message_type AS ENUM ('text', 'image', 'video', 'file');

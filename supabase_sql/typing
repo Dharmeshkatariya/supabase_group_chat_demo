@@ -1,0 +1,28 @@
+-- Create the typing table
+CREATE TABLE typing (
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  chat_room_id uuid REFERENCES chat_rooms(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+  is_typing boolean DEFAULT false, -- Set default value to false
+  typed_at timestamp with time zone DEFAULT now()
+);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE typing ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Allow insert for typing"
+ON typing FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Allow update for typing"
+ON typing FOR UPDATE
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Allow delete for typing"
+ON typing FOR DELETE
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Allow select for typing"
+ON typing FOR SELECT
+USING (true);

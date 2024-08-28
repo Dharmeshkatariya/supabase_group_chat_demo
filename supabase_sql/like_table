@@ -1,0 +1,56 @@
+-- Create the likes table
+CREATE TABLE likes (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    post_id UUID NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (post_id) REFERENCES posts(id)
+);
+
+-- Enable row-level security for the likes table
+ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
+
+-- Create a policy to allow authenticated users to insert data
+CREATE POLICY "Insert policy"
+ON likes
+FOR INSERT
+WITH CHECK (auth.uid() IS NOT NULL);
+
+-- Create a policy to allow users to update their own likes
+CREATE POLICY "Update policy"
+ON likes
+FOR UPDATE
+USING (auth.uid() = user_id);
+
+-- Create a policy to allow users to delete their own likes
+CREATE POLICY "Delete policy"
+ON likes
+FOR DELETE
+USING (auth.uid() = user_id);
+
+-- Create a policy to allow users to select any data
+CREATE POLICY "Select policy"
+ON likes
+FOR SELECT
+USING (true);  -- or specify more restrictive conditions if needed
+
+
+// like decrement
+
+
+CREATE OR REPLACE FUNCTION like_decrement(count INT, row_id UUID)
+RETURNS VOID AS $$
+  UPDATE posts
+  SET like_count = GREATEST(like_count - count, 0)
+  WHERE id = row_id;
+$$ LANGUAGE sql;
+
+
+// like increment
+
+CREATE OR REPLACE FUNCTION like_increment(count INT, row_id UUID)
+RETURNS VOID AS $$
+  UPDATE posts
+  SET like_count = like_count + count
+  WHERE id = row_id;
+$$ LANGUAGE sql;

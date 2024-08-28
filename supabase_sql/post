@@ -1,0 +1,36 @@
+CREATE TABLE posts (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    content TEXT,
+    image TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    comment_count INTEGER DEFAULT 0,
+    "user" JSONB,
+    like_count INTEGER DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+-- Policy for selecting posts
+CREATE POLICY "Select policy"
+ON posts
+FOR SELECT
+USING (true);  -- Allows anyon
+
+-- Policy for inserting posts
+CREATE POLICY "Insert policy"
+ON posts
+FOR INSERT
+WITH CHECK (auth.uid() IS NOT NULL AND user_id = auth.uid());
+
+-- Policy for updating posts
+CREATE POLICY "Update policy"
+ON posts
+FOR UPDATE
+USING (auth.uid() = user_id);
+
+-- Policy for deleting posts
+CREATE POLICY "Delete policy"
+ON posts
+FOR DELETE
+USING (auth.uid() = user_id);

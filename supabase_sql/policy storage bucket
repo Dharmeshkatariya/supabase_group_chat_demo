@@ -1,0 +1,41 @@
+create policy "Allow anon access to JPG images" on storage.objects for
+select
+
+
+
+
+CREATE POLICY "Allow insert to images bucket"
+ON storage.objects
+FOR INSERT
+WITH CHECK (bucket_id = 'S3_BUCKET' AND auth.uid() IS NOT NULL);
+
+
+
+-- Supabase AI is experimental and may produce incorrect answers
+-- Always verify the output before executing
+
+drop policy if exists "Allow insert to images bucket" on storage.objects;
+
+create policy "Allow insert to images bucket" on storage.objects for insert
+with
+  check (
+    bucket_id = 'S3_BUCKET'
+    and auth.uid () is not null
+  );
+
+
+
+  -- Supabase AI is experimental and may produce incorrect answers
+  -- Always verify the output before executing
+
+  drop policy if exists "Allow insert to any bucket" on storage.objects;
+
+  create policy "Allow insert to any bucket" on storage.objects for insert
+  with
+    check (auth.uid () is not null);
+
+
+
+    ALTER TABLE storage.objects
+    ALTER COLUMN user_id TYPE UUID USING user_id::UUID;
+

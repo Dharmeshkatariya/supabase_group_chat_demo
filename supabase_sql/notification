@@ -1,0 +1,42 @@
+-- Create the notifications table
+CREATE TABLE notifications (
+     id UUID PRIMARY KEY,
+    post_id UUID NOT NULL,
+    notification TEXT,
+    user_id UUID NOT NULL,
+    to_user_id TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+   "user" JSONB,
+    FOREIGN KEY (post_id) REFERENCES posts(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Enable row-level security for the notifications table
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- Create a policy to allow authenticated users to insert data
+CREATE POLICY "Insert policy"
+ON notifications
+FOR INSERT
+WITH CHECK (auth.uid() IS NOT NULL);
+
+-- Create a policy to allow users to update their own notifications
+-- Note: You might not want users to update notifications; adjust as necessary
+CREATE POLICY "Update policy"
+ON notifications
+FOR UPDATE
+USING (auth.uid() = user_id);
+
+-- Create a policy to allow users to delete their own notifications
+-- Note: You might not want users to delete notifications; adjust as necessary
+CREATE POLICY "Delete policy"
+ON notifications
+FOR DELETE
+USING (auth.uid() = user_id);
+
+-- Create a policy to allow users to select their own notifications
+CREATE POLICY "Select policy"
+ON notifications
+FOR SELECT
+USING (auth.uid() IS NOT NULL);
+

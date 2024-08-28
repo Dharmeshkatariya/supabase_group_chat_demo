@@ -1,0 +1,74 @@
+
+
+// chat room table
+
+
+create table if not exists chat_rooms (
+  id uuid primary key,
+  name text not null,
+  created_at timestamptz default now(),
+  user_id uuid[] not null,
+  joined_at timestamptz default now(),
+  creator_id uuid not null,
+    typing_users JSONB DEFAULT '[]',
+  chat_room_id text not null
+);
+
+alter table chat_rooms enable row level security;
+create policy "Allow insert for any authenticated user"
+on chat_rooms
+for insert
+with check (auth.role() = 'authenticated');
+
+
+create policy "Allow update to add participants"
+on chat_rooms
+for update
+using (
+  auth.role() = 'authenticated'
+  AND (
+    auth.uid() = ANY(user_id)
+    OR auth.uid() = creator_id
+  )
+)
+with check (auth.role() = 'authenticated');
+
+create policy "Allow delete for authenticated users"
+on chat_rooms
+for delete
+using (auth.role() = 'authenticated');
+
+
+// chat room participate
+
+
+
+
+CREATE TABLE IF NOT EXISTS chat_room_participants (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  chat_room_id UUID REFERENCES chat_rooms(id) ON DELETE CASCADE,
+  user_id uuid[] not null,
+  joined_at TIMESTAMPTZ DEFAULT now()
+);
+
+alter table chat_room_participants enable row level security;
+CREATE POLICY insert_policy
+ON chat_room_participants
+FOR INSERT
+WITH CHECK (true);  -- Allow any
+-- Policies
+create policy "Allow select for authenticated users" on chat_room_participants for
+select
+  using (auth.role () = 'authenticated');
+
+
+
+create policy "Allow update for authenticated users" on chat_room_participants
+for update
+  using (auth.role () = 'authenticated');
+
+create policy "Allow delete for authenticated users" on chat_room_participants for delete using (auth.role () = 'authenticated');
+
+
+
+
